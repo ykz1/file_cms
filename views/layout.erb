@@ -6,11 +6,13 @@
   </head>
 
   <body>
-    <% if session[:error] %>
+    <% if session[:message] %>
       <p><%= session.delete(:error) %></p>
     <% end %>
 
     <a href="/">Home</a>
+    <br>
+    <br>
 
     <%= yield %>
 

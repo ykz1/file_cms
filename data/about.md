@@ -1,7 +1,7 @@
-About Ruby
+# About Ruby
 Wondering why Ruby is so popular? Its fans call it a beautiful, artful language. And yet, they say it’s handy and practical. What gives?
 
-The Ideals of Ruby’s Creator
+#### The Ideals of Ruby’s Creator
 Ruby is a language of careful balance. Its creator, Yukihiro “Matz” Matsumoto, blended parts of his favorite languages (Perl, Smalltalk, Eiffel, Ada, and Lisp) to form a new language that balanced functional programming with imperative programming.
 
 He has often said that he is “trying to make Ruby natural, not simple,” in a way that mirrors life.
@@ -10,7 +10,7 @@ Building on this, he adds:
 
 Ruby is simple in appearance, but is very complex inside, just like our human body1.
 
-About Ruby’s Growth
+#### About Ruby’s Growth
 Since its public release in 1995, Ruby has drawn devoted coders worldwide. In 2006, Ruby achieved mass acceptance. With active user groups formed in the world’s major cities and Ruby-related conferences filled to capacity.
 
 Ruby-Talk, the primary mailing list for discussion of the Ruby language, climbed to an average of 200 messages per day in 2006. It has dropped in recent years as the size of the community pushed discussion from one central list into many smaller groups.

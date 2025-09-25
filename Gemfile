@@ -9,4 +9,6 @@ gem "minitest"
 gem "minitest-reporters"
 gem "rack-test"
 
+gem "redcarpet"
+
 ruby "3.4.5"
