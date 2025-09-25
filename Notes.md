@@ -90,5 +90,8 @@
 
 9. Isolating Test Execution
 
-  Requirements:
-  - 
+  (skipped notes for this one)
+  
+10. Adding Global Style and Behavior
+
+  

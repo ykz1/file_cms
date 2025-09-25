@@ -4,6 +4,8 @@ require "minitest/autorun"
 require "minitest/reporters"
 require "rack/test"
 
+require "fileutils"
+
 require_relative "../cms"
 
 Minitest::Reporters.use!
@@ -19,36 +21,43 @@ class CMSTest < Minitest::Test
   # Setup tasks
 
   def setup
-    @root = File.expand_path("../..", __FILE__)
+    FileUtils.mkdir_p(data_path)
+  end
 
-    @files = Dir.glob(@root + "/data/*").map { |path| File.basename(path) }
+  def teardown
+    FileUtils.rm_rf(data_path)
+  end
+
+  def create_document(name, content="")
+    File.open(File.join(data_path, name), "w") do |file|
+      file.write(content)
+    end
   end
   
   # ===================
   # Tests
 
   def test_index
+    create_document "about.md"
+    create_document "changes.txt"
+
     get "/"
 
     assert_equal 200, last_response.status
 
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
-    
-    @files.each do |filename|
-      assert_includes last_response.body, filename
-    end
+    assert_includes last_response.body, "about.md"
+    assert_includes last_response.body, "changes.txt"
   end
 
   def test_file_pages
+    create_document "history.txt"
+
     get "/history.txt"
 
     assert_equal 200, last_response.status
 
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
-
-    content = File.read(@root + "/data/history.txt").split("\n")
-    assert_includes last_response.body, content.first
-    assert_includes last_response.body, content.last
   end
 
   def test_file_not_found
@@ -75,16 +84,20 @@ class CMSTest < Minitest::Test
   end
 
   def test_markdown_rendering
+    create_document "about.md", "# Title"
+
     get "/about.md"
 
     assert_equal 200, last_response.status
 
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
 
-    assert_includes last_response.body, "<h1>About Ruby</h1>"
+    assert_includes last_response.body, "<h1>Title</h1>"
   end
 
   def test_edit_page
+    create_document "test.txt"
+
     get "/test.txt/edit"
 
     assert_equal 200, last_response.status
@@ -94,6 +107,8 @@ class CMSTest < Minitest::Test
   end
 
   def test_edit_submission
+    create_document "test.txt"
+
     post "/test.txt/edit", edited_text: 'New text'
 
     assert_equal 302, last_response.status

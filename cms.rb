@@ -7,22 +7,22 @@ require "tilt/erubi"
 # Helper methods
 def data_path
   if ENV["RACK_ENV"] == "test"
-    File.expand_path("../test/data", __FILE__)
+    return "#{root_path}/tests/data"
   else
-    File.expand_path("../data", __FILE__)
+    return "#{root_path}/data"
   end
 end
 
-def root
+def root_path
   File.expand_path("..", __FILE__)
 end
 
-def filepath(filename)
-  "#{root}/data/#{filename}"
+def file_path(filename)
+  "#{data_path}/#{filename}"
 end
 
 def read_file_plain(filename)
-  File.read(filepath(filename))
+  File.read(file_path(filename))
 end
 
 def render_file(filename)
@@ -47,7 +47,7 @@ def render_from_plain(text)
 end
 
 # =======================
-# Before
+# Before and configure
 
 configure do
   enable :sessions
@@ -55,7 +55,7 @@ configure do
 end
 
 before do
-  @files = Dir.glob(root + "/data/*").map { |path| File.basename(path) }
+  @files = Dir.glob("#{data_path}/*").map { |path| File.basename(path) }
 end
 
 # =======================
@@ -115,7 +115,7 @@ post "/:filename/edit" do
   # Sanitize input
   # Add validations 
 
-  File.write(filepath(filename), new_content)
+  File.write(file_path(filename), new_content)
 
   session[:message] = "#{filename} has been updated."
 
