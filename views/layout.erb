@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title>File-based CMS</title>
+    <meta charset="UTF-8">
+  </head>
+
+  <body>
+    <% if session[:error] %>
+      <p><%= session.delete(:error) %></p>
+    <% end %>
+
+    <a href="/">Home</a>
+
+    <%= yield %>
+
+  </body>
+</html>
