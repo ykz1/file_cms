@@ -203,6 +203,24 @@ class CMSTest < Minitest::Test
 
     get "/test.txt"
     assert_equal 302, last_response.status
-
   end
+
+  def test_login
+    # Test that wrong credentials result in no login
+    post "/login", username: "notadmin", password: "notsecret"
+    assert_includes last_response.body, "Invalid credentials"
+
+    post "/login", username: "admin", password: "notsecret"
+    assert_includes last_response.body, "Invalid credentials"
+    
+    # Test that correct credentials logs user in
+    post "/login", username: "admin", password: "secret"
+    assert_equal 302, last_response.status
+    
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "Welcome"
+    assert_includes last_response.body, "Logged in as admin"
+  end
+
 end

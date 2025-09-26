@@ -1,22 +1,26 @@
 <br>
 
-<table>
-  <head>
-    <tr>
-      <th scope="col">File Name</th>
-      <th scope="col" colspan="2">Actions</th>
-    </tr>
-  </head>
-  <tbody>
-    <% @files.each do |file| %>
+<% if session[:user] %>
+  <table>
+    <head>
       <tr>
-        <td><a href="<%= file %>"><%= file %></a></td>
-        <td><form action="/<%= file %>/edit" method="get"><button type="submit">Edit</button></form></td>
-        <td><form action="/<%= file %>/delete" method="post"><button type="submit">Delete</button></form></td>
+        <th scope="col">File Name</th>
+        <th scope="col" colspan="2">Actions</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </head>
+    <tbody>
+      <% @files.each do |file| %>
+        <tr>
+          <td><a href="<%= file %>"><%= file %></a></td>
+          <td><form action="/<%= file %>/edit" method="get"><button type="submit">Edit</button></form></td>
+          <td><form action="/<%= file %>/delete" method="post"><button type="submit">Delete</button></form></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <br>
+  <form action="/new" method="get"><button type="submit">New File</button></form>
+<% else %>
+  <p><a href="/users/login">Sign in</a> to access this page</p>
+<% end %>
 
-<br>
-<a href="/new">New File</a>

@@ -153,4 +153,30 @@
   - Add post route for deletion
     - success message
   - Test
-    
+
+
+14. Signing In and Out
+
+  Requirements:
+  - Signed-out users get "Sign In" page
+  - On Sign In page, show form with Username, Password, and Sign In button
+  - "admin" and "secret" redirects to index page with message "Welcome"
+  - Any other combo shows message "Invalid credentials" and re-renders page; keep entered username
+  - At bottom, show message "Signed in as $username", followed by button for "Sign out"
+  - Sign out leads to signing out and redirected to index page
+
+  Implementation
+  - on index.erb
+    - add conditional to decide what to show depending on session login state
+  - on layout.erb
+    - add footer for logged in state with sign in / sign out buttons
+  - on main app
+    - add get '/login' route
+      - render login.erb
+    - add post '/login' route
+      - check credentials
+      - success: change session state and redirect
+      - fail: show error and re-render page
+  - create login.erb
+
+  NOTE: NEED TO UPDATE LOGIN ACCESS ELSEWHERE TOO

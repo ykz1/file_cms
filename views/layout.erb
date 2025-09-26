@@ -7,15 +7,24 @@
   </head>
 
   <body>
+    <div class="header">
+      <a href="/">Home</a>
+      | 
+      <% if session[:user] %>
+        Logged in as <%= session[:user] %>
+        <form action="/users/logout" method="post" class="inline">
+          <button type="submit">Sign out</button>
+        </form>
+      <% else %>
+        <a href="/users/login">Login</a>
+      <% end %>
+    </div>
+
     <% if session[:message] %>
       <div class="message">
         <p><%= session.delete(:message) %></p>
       </div>
     <% end %>
-
-    <br>
-    <a href="/">Home</a>
-    <br>
 
     <%= yield %>
 

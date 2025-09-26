@@ -84,7 +84,7 @@ end
 # View helpers
 
 helpers do
-
+  
 end
 
 # =======================
@@ -98,6 +98,40 @@ end
 # Home / index page
 get "/" do
   erb :index
+end
+
+# Login page
+get "/users/login" do
+  if session[:user]
+    redirect "/"
+  else
+    erb :login
+  end
+end
+
+def authenticate?(username, password)
+  username == "admin" && password == "secret"
+end
+
+post "/users/login" do
+  username = params[:username].strip.downcase
+  password = params[:password]
+
+  if authenticate?(username, password)
+    session[:user] = username
+    session[:message] = "Welcome!"
+    redirect "/"
+  else
+    session[:message] = "Invalid credentials."
+    status 422
+    erb :login
+  end
+end
+
+post "/users/logout" do
+  session.delete(:user)
+  session[:message] = "You have been signed out"
+  redirect "/"
 end
 
 # New file creation page

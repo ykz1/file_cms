@@ -7,3 +7,12 @@ body {
   padding: 10px;
   background: #FFFF99;
 }
+
+.header {
+  padding: 10px;
+  background: #CDCDCD;
+}
+
+form.inline {
+  display: inline;
+}
