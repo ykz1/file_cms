@@ -94,4 +94,63 @@
   
 10. Adding Global Style and Behavior
 
-  
+  Requirements:
+  1. Yellow background around messages
+  2. Messages disappear once reloaded
+  3. Text remains plain text
+  4. Entire site in sans-serif
+
+  Implementation:
+  - Add CSS 
+  - Link to CSS from layout.erb
+
+11. Favicon
+
+12. Creating New Documents
+
+  Requirements
+  - Add "new document" link to index page
+  - Create New Document route - get
+  - Create New Document route - post
+    - Error validation 
+
+  Implementation
+  - Add link to index
+  - New Document page
+    - New view template for "file_new" page
+    - Add entry text box similar to edit page
+    - Add create button similar to edit page
+    - New route for get '/new'
+  - New Document post
+    - Button should send post
+    - create post '/new' route
+    - re-render template if error
+    - otherwise create new file and redirect to index page with message
+  - Tests
+    - On index: new file link exists
+    - On new file page
+      - submitting valid new file name leads to 
+        1) redirect to index
+        2) file is actually created and showing on index
+        3) correct message on index
+        4) message goes away on reload
+        5) individual page for new file loads
+      - submitting invalid name
+        - blank creates error
+        - spaces creates error
+        - existing filename creates error
+        - valid name with spaces results in spaces being stripped
+        - upon error, entered value is retained in input box
+
+13. Deleting Documents
+
+  Requirements
+  - Delete buttons on index
+  - Delete appropriately
+
+  Implementation
+  - Add links on index
+  - Add post route for deletion
+    - success message
+  - Test
+    

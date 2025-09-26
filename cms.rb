@@ -46,6 +46,28 @@ def render_from_plain(text)
   end.join
 end
 
+def check_name_error(filename)
+  return "Name must be between 1 and 100 characters." if !(1..100).cover? filename.size
+
+  return "File already exists." if @files.include? filename
+
+  return "File extension must be one of: #{valid_extensions.join(", ")}." unless valid_extension?(filename)
+
+  nil
+end
+
+def valid_extensions
+  [".txt", ".md"]
+end
+
+def valid_extension?(filename)
+  valid_extensions.any? do |extension|
+    length = extension.length
+    filename[-length, length] == extension
+  end
+end
+
+
 # =======================
 # Before and configure
 
@@ -78,16 +100,24 @@ get "/" do
   erb :index
 end
 
-# File pages
-get "/:filename" do
-  filename = params[:filename]
-  if @files.include?(filename)
-    @content = render_file(filename)
+# New file creation page
+get "/new" do
+  erb :file_new
+end
 
-    erb :file
+# New file creation post
+post "/new" do
+  filename = params[:file_name].strip
+
+  error_message = check_name_error(filename)
+
+  if error_message
+    session[:message] = error_message
+    status 422
+    erb :file_new
   else
-    session[:message] = "#{filename} not found."
-
+    File.write(file_path(filename), '')
+    session[:message] = "#{filename} has been created."
     redirect "/"
   end
 end
@@ -120,4 +150,28 @@ post "/:filename/edit" do
   session[:message] = "#{filename} has been updated."
 
   redirect '/'
+end
+
+# Delete pages
+post "/:filename/delete" do
+  File.delete(file_path(params[:filename]))
+  status 303
+
+  session[:message] = "#{params[:filename]} has been deleted."
+
+  redirect '/'
+end
+
+# File pages
+get "/:filename" do
+  filename = params[:filename]
+  if @files.include?(filename)
+    @content = render_file(filename)
+
+    erb :file
+  else
+    session[:message] = "#{filename} not found."
+
+    redirect "/"
+  end
 end

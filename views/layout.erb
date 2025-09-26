@@ -3,15 +3,18 @@
   <head>
     <title>File-based CMS</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/stylesheets/cms.css">
   </head>
 
   <body>
     <% if session[:message] %>
-      <p><%= session.delete(:message) %></p>
+      <div class="message">
+        <p><%= session.delete(:message) %></p>
+      </div>
     <% end %>
 
-    <a href="/">Home</a>
     <br>
+    <a href="/">Home</a>
     <br>
 
     <%= yield %>

@@ -129,4 +129,80 @@ class CMSTest < Minitest::Test
     assert_includes last_response.body, "New text"
 
   end
+
+  def test_new_file_happy_path
+    # Test that link to create new file exists on index
+    get "/"
+    assert_includes last_response.body, "New File"
+    assert_includes last_response.body, %Q(<a href="/new">)
+
+    # Test that new file creation page loads properly and contains input field + button to submit
+    get "/new"
+    assert_equal 200, last_response.status
+    assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
+    assert_includes last_response.body, %Q(<button type="submit")
+    assert_includes last_response.body, "<input"
+
+    # Test that submitting a valid file name creates new file
+    post "/new", file_name: "new_file.txt"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "new_file.txt has been created."
+    assert_includes last_response.body, %Q(<a href="new_file.txt">)
+    
+    get "/"
+    refute_includes last_response.body, "new_file.txt has been created."
+    assert_includes last_response.body, "new_file.txt"
+
+    
+    # Test that individual page for new file exists and loads
+    get "/new_file.txt"
+    assert_equal 200, last_response.status
+    assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
+  end
+  
+  def test_new_file_invalid_name
+    # Test blank entry
+    post "/new", file_name: ""
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Name must be between 1 and 100 characters."
+
+    # Test invalid extensions
+    post "/new", file_name: "test.exe"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "File extension must be one of"
+    
+    # Test existing filename + entered value retained
+    create_document "name.txt"
+    post "/new", file_name: "name.txt"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "File already exists."
+    assert_includes last_response.body, %Q(value="name.txt")
+    
+    # Test trailing and leading spaces are removed
+    post "/new", file_name: "        new_file.txt    "
+    assert_equal 302, last_response.status
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "new_file.txt has been created."
+    assert_includes last_response.body, %Q(<a href="new_file.txt">)
+    get "/"
+    refute_includes last_response.body, "new_file.txt has been created."
+  end
+
+  def test_delete_file
+    create_document "test.txt"
+    
+    post "/test.txt/delete"
+    assert_equal 302, last_response.status
+    
+    get last_response["Location"]
+    refute_includes last_response.body, "test.txt"
+
+    get "/test.txt"
+    assert_equal 302, last_response.status
+
+  end
 end

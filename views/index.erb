@@ -1,7 +1,22 @@
-<ul>
-  <% @files.each do |file| %>
-    <li>
-      <a href="<%= file %>"><%= file %></a> | <a href="<%= file %>/edit">Edit</a>
-    </li>
-  <% end %>
-</ul>
+<br>
+
+<table>
+  <head>
+    <tr>
+      <th scope="col">File Name</th>
+      <th scope="col" colspan="2">Actions</th>
+    </tr>
+  </head>
+  <tbody>
+    <% @files.each do |file| %>
+      <tr>
+        <td><a href="<%= file %>"><%= file %></a></td>
+        <td><form action="/<%= file %>/edit" method="get"><button type="submit">Edit</button></form></td>
+        <td><form action="/<%= file %>/delete" method="post"><button type="submit">Delete</button></form></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+<a href="/new">New File</a>
