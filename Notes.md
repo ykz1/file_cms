@@ -180,3 +180,11 @@
   - create login.erb
 
   NOTE: NEED TO UPDATE LOGIN ACCESS ELSEWHERE TOO
+
+  15. Accessing Session in Testing
+
+      Requirements
+      - Update tests to check session via `last_request.env["rack.session"]`
+      - Update routes to make login necessary before showing any files
+      - Update tests to show logged in state as necessary
+      
