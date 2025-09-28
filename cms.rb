@@ -48,11 +48,11 @@ end
 
 def check_name_error(filename)
   return "Name must be between 1 and 100 characters." if !(1..100).cover? filename.size
-
+  
   return "File already exists." if @files.include? filename
-
+  
   return "File extension must be one of: #{valid_extensions.join(", ")}." unless valid_extension?(filename)
-
+  
   nil
 end
 
@@ -61,12 +61,20 @@ def valid_extensions
 end
 
 def valid_extension?(filename)
-  valid_extensions.any? do |extension|
-    length = extension.length
-    filename[-length, length] == extension
-  end
+  filename.end_with?(*valid_extensions)
 end
 
+def authenticate?(username, password)
+  username == "admin" && password == "secret"
+end
+
+def require_user_login
+  unless session[:user]
+    session[:message] = "Sign in to view and edit files"
+    session[:redirect_to] = request.path_info
+    redirect "/users/login"
+  end
+end
 
 # =======================
 # Before and configure
@@ -109,18 +117,16 @@ get "/users/login" do
   end
 end
 
-def authenticate?(username, password)
-  username == "admin" && password == "secret"
-end
-
 post "/users/login" do
+  redirect "/" if session[:user]
+
   username = params[:username].strip.downcase
   password = params[:password]
 
   if authenticate?(username, password)
     session[:user] = username
     session[:message] = "Welcome!"
-    redirect "/"
+    redirect session.delete(:redirect_to) || "/"
   else
     session[:message] = "Invalid credentials."
     status 422
@@ -129,18 +135,24 @@ post "/users/login" do
 end
 
 post "/users/logout" do
-  session.delete(:user)
-  session[:message] = "You have been signed out"
+  if session.delete(:user)
+    session[:message] = "You have been signed out"
+  end
+  
   redirect "/"
 end
 
 # New file creation page
 get "/new" do
+  require_user_login()
+
   erb :file_new
 end
 
 # New file creation post
 post "/new" do
+  require_user_login()
+
   filename = params[:file_name].strip
 
   error_message = check_name_error(filename)
@@ -158,6 +170,8 @@ end
 
 # File edit pages: display edit page
 get "/:filename/edit" do
+  require_user_login()
+
   filename = params[:filename]
 
   if @files.include?(filename)
@@ -173,6 +187,8 @@ end
 
 # File edit pages: save edits
 post "/:filename/edit" do
+  require_user_login()
+
   filename = params[:filename]
   new_content = params[:edited_text]
 
@@ -188,6 +204,8 @@ end
 
 # Delete pages
 post "/:filename/delete" do
+  require_user_login()
+
   File.delete(file_path(params[:filename]))
   status 303
 
@@ -198,6 +216,8 @@ end
 
 # File pages
 get "/:filename" do
+  require_user_login()
+
   filename = params[:filename]
   if @files.include?(filename)
     @content = render_file(filename)
