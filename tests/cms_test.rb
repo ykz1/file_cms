@@ -37,11 +37,24 @@ class CMSTest < Minitest::Test
   # ===================
   # Tests
 
+  def session
+    last_request.env["rack.session"]
+  end
+
+  def auth_get(path)
+    get path, {}, {"rack.session" => {user: "admin"} }
+  end
+
+  def auth_post(path, params = {} )
+    post path, params, {"rack.session" => {user: "admin" } }
+  end
+
+
   def test_index
     create_document "about.md"
     create_document "changes.txt"
 
-    get "/"
+    auth_get "/"
 
     assert_equal 200, last_response.status
 
@@ -53,7 +66,7 @@ class CMSTest < Minitest::Test
   def test_file_pages
     create_document "history.txt"
 
-    get "/history.txt"
+    auth_get "/history.txt"
 
     assert_equal 200, last_response.status
 
@@ -61,32 +74,17 @@ class CMSTest < Minitest::Test
   end
 
   def test_file_not_found
-    get "/nonexistent_file.png"
+    auth_get "/nonexistent_file.png"
 
     # Test that page is redirecting
     assert_equal 302, last_response.status
-
-    # Follow redirect path
-    get last_response["Location"]
-
-    # Test successful request
-    assert_equal 200, last_response.status
-    assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
-
-
-    # Test error message is present
-    assert_includes last_response.body, "nonexistent_file.png not found"
-
-    # Reload page
-    get "/"
-    refute_includes last_response.body, "nonexistent_file.png not found"
-
+    assert_equal "nonexistent_file.png not found.", session[:message]
   end
 
   def test_markdown_rendering
     create_document "about.md", "# Title"
 
-    get "/about.md"
+    auth_get "/about.md"
 
     assert_equal 200, last_response.status
 
@@ -98,7 +96,7 @@ class CMSTest < Minitest::Test
   def test_edit_page
     create_document "test.txt"
 
-    get "/test.txt/edit"
+    auth_get "/test.txt/edit"
 
     assert_equal 200, last_response.status
 
@@ -109,118 +107,146 @@ class CMSTest < Minitest::Test
   def test_edit_submission
     create_document "test.txt"
 
-    post "/test.txt/edit", edited_text: 'New text'
+    auth_post "/test.txt/edit", edited_text: 'New text'
 
     assert_equal 302, last_response.status
-
-    # Test success message shows up and then goes away
-    get last_response["Location"]
-    
-    assert_includes last_response.body, "test.txt has been updated."
-
-    get '/'
-
-    refute_includes last_response.body, "test.txt has been updated."
+    assert_equal "test.txt has been updated.", session[:message]
 
     # Test that edited page has updated text
-    get "/test.txt"
+    auth_get "/test.txt"
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "New text"
-
   end
 
   def test_new_file_happy_path
     # Test that link to create new file exists on index
-    get "/"
+    auth_get "/"
     assert_includes last_response.body, "New File"
-    assert_includes last_response.body, %Q(<a href="/new">)
+    assert_includes last_response.body, %Q(="/new")
 
     # Test that new file creation page loads properly and contains input field + button to submit
-    get "/new"
+    auth_get "/new"
     assert_equal 200, last_response.status
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
     assert_includes last_response.body, %Q(<button type="submit")
     assert_includes last_response.body, "<input"
 
     # Test that submitting a valid file name creates new file
-    post "/new", file_name: "new_file.txt"
+    auth_post "/new", file_name: "new_file.txt"
     assert_equal 302, last_response.status
+    assert_equal "new_file.txt has been created.", session[:message]
 
-    get last_response["Location"]
-    assert_equal 200, last_response.status
-    assert_includes last_response.body, "new_file.txt has been created."
-    assert_includes last_response.body, %Q(<a href="new_file.txt">)
-    
-    get "/"
-    refute_includes last_response.body, "new_file.txt has been created."
+    auth_get "/"
     assert_includes last_response.body, "new_file.txt"
-
     
     # Test that individual page for new file exists and loads
-    get "/new_file.txt"
+    auth_get "/new_file.txt"
     assert_equal 200, last_response.status
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
   end
   
   def test_new_file_invalid_name
     # Test blank entry
-    post "/new", file_name: ""
+    auth_post "/new", file_name: ""
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Name must be between 1 and 100 characters."
 
     # Test invalid extensions
-    post "/new", file_name: "test.exe"
+    auth_post "/new", file_name: "test.exe"
     assert_equal 422, last_response.status
     assert_includes last_response.body, "File extension must be one of"
     
     # Test existing filename + entered value retained
     create_document "name.txt"
-    post "/new", file_name: "name.txt"
+    auth_post "/new", file_name: "name.txt"
     assert_equal 422, last_response.status
     assert_includes last_response.body, "File already exists."
     assert_includes last_response.body, %Q(value="name.txt")
     
     # Test trailing and leading spaces are removed
-    post "/new", file_name: "        new_file.txt    "
+    auth_post "/new", file_name: "        new_file.txt    "
     assert_equal 302, last_response.status
-    get last_response["Location"]
+    auth_get last_response["Location"]
     assert_equal 200, last_response.status
     assert_includes last_response.body, "new_file.txt has been created."
     assert_includes last_response.body, %Q(<a href="new_file.txt">)
-    get "/"
+    auth_get "/"
     refute_includes last_response.body, "new_file.txt has been created."
   end
 
   def test_delete_file
     create_document "test.txt"
     
-    post "/test.txt/delete"
+    auth_post "/test.txt/delete"
     assert_equal 302, last_response.status
+    assert_equal "test.txt has been deleted.", session[:message]
     
-    get last_response["Location"]
-    refute_includes last_response.body, "test.txt"
-
-    get "/test.txt"
-    assert_equal 302, last_response.status
+    auth_get "/"
+    refute_includes last_response.body, %q(a href="test.txt")
   end
 
   def test_login
     # Test that wrong credentials result in no login
-    post "/login", username: "notadmin", password: "notsecret"
-    assert_includes last_response.body, "Invalid credentials"
+    post "/users/login", username: "notadmin", password: "notsecret"
+    assert_equal 422, last_response.status
+    assert_nil session[:user]
+    assert_includes last_response.body, "Invalid credentials."
 
-    post "/login", username: "admin", password: "notsecret"
+    post "/users/login", username: "admin", password: "notsecret"
     assert_includes last_response.body, "Invalid credentials"
     
     # Test that correct credentials logs user in
-    post "/login", username: "admin", password: "secret"
+    post "/users/login", username: "admin", password: "secret"
     assert_equal 302, last_response.status
     
-    get last_response["Location"]
+    auth_get last_response["Location"]
     assert_equal 200, last_response.status
     assert_includes last_response.body, "Welcome"
     assert_includes last_response.body, "Logged in as admin"
   end
 
+  def test_restricted_access
+    create_document "about.md"
+
+    get '/'
+    refute_includes last_response.body, "about.md"
+
+    get '/about.md'
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+    refute_includes last_response.body, "about.md"
+
+    get '/about.md/edit'
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+    refute_includes last_response.body, "about.md"
+
+    post '/about.md/edit', edited_text: "New text"
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+    refute_includes last_response.body, "about.md"
+    get '/about.md'
+    refute_includes last_response.body, "New text"
+
+    get '/new'
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+
+    post '/new', file_name: "new_file.txt"
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+    auth_get '/'
+    refute_includes last_response.body, "new_file.txt"
+  end
+
+  def test_restricted_delete
+    create_document "about.md"
+
+    post "/about.md/delete"
+    assert_equal 302, last_response.status
+    assert_equal "Sign in to view and edit files.", session[:message]
+    auth_get '/'
+    assert_includes last_response.body, "about.md"
+  end
 end

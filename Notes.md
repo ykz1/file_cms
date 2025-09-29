@@ -187,4 +187,22 @@
       - Update tests to check session via `last_request.env["rack.session"]`
       - Update routes to make login necessary before showing any files
       - Update tests to show logged in state as necessary
-      
+
+  NOTE: Remove login requirement from .erb files and into application logic
+
+  16. Restricting Actions to Only Signed-in Users
+
+    Requirements: redirect and ask for sign in at:
+    - Edit page
+    - Submit edits
+    - New file page
+    - Submit new file
+    - Delete file
+    Discretionary added:
+    - View file
+    - Index page
+    
+    Implementation:
+    Most of these are implemented with a helper method on all routes, and so key to-do here is to create the right testing
+
+

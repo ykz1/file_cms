@@ -70,7 +70,7 @@ end
 
 def require_user_login
   unless session[:user]
-    session[:message] = "Sign in to view and edit files"
+    session[:message] = "Sign in to view and edit files."
     session[:redirect_to] = request.path_info
     redirect "/users/login"
   end
