@@ -1,0 +1,11 @@
+Ruby 3.4.6 Released
+Posted by k0kubun on 16 Sep 2025
+
+Ruby 3.4.6 has been released.
+
+This is a routine update that includes bug fixes. Please refer to the release notes on GitHub for further details.
+
+Release Schedule
+We intend to release the latest stable Ruby version (currently Ruby 3.4) every two months following the most recent release. Ruby 3.4.7 is scheduled for November and 3.4.8 for January.
+
+If a change arises that significantly affects users, a release may occur earlier than planned, and the subsequent schedule may shift accordingly.

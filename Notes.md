@@ -205,4 +205,25 @@
     Implementation:
     Most of these are implemented with a helper method on all routes, and so key to-do here is to create the right testing
 
+  17. Storing User Accounts in an External File
 
+    Requirements: Admin can modify list of users by editing a config file
+
+    Implementation:
+    - Create users.yml file
+    - Change login authentication use file
+    - Add tests for user credential testing
+  
+  18. Hash passwords before storing
+
+  19. Next Steps / Additional Features
+
+    Requirements:
+    - Validate document extensions
+    - Add a "duplicate" button
+    - User signup
+    - Upload images
+    - Each version of document preserved
+
+    Implementation:
+    - Duplicate

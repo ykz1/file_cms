@@ -2,6 +2,8 @@ require "redcarpet"
 require "sinatra"
 require "sinatra/reloader" # if development?
 require "tilt/erubi"
+require "yaml"
+require "bcrypt"
 
 # =======================
 # Helper methods
@@ -64,8 +66,16 @@ def valid_extension?(filename)
   filename.end_with?(*valid_extensions)
 end
 
+def append_filename(original_name)
+  extension = valid_extensions.find { |ext| original_name.end_with?(ext) }
+  name = original_name.delete_suffix(extension)
+  "#{name}_copy#{extension}"
+end
+
 def authenticate?(username, password)
-  username == "admin" && password == "secret"
+  users = get_user_list
+  return false unless users.key?(username)
+  BCrypt::Password.new(users[username]) == password
 end
 
 def require_user_login
@@ -73,6 +83,38 @@ def require_user_login
     session[:message] = "Sign in to view and edit files."
     session[:redirect_to] = request.path_info
     redirect "/users/login"
+  end
+end
+
+def admin_user?
+  session[:user] == "admin"
+end
+
+def get_user_list
+  if ENV["RACK_ENV"] == "test"
+    return YAML.load_file("#{root_path}/tests/users.yml")
+  else
+    return YAML.load_file("#{root_path}/private/users.yml")
+  end
+end
+
+def check_signup_entry(username, password, password_confirm)
+  return "Passwords must match." unless password == password_confirm
+  return "Username is taken." if get_user_list().key?(username)
+  nil
+end
+
+def add_user(username, password)
+  users = get_user_list()
+  users[username] = BCrypt::Password.create(password).to_s
+  save_to_user_list(users)
+end
+
+def save_to_user_list(users)
+  if ENV["RACK_ENV"] == "test"
+    File.write("#{root_path}/tests/users.yml", YAML.dump(users))
+  else
+    File.write("#{root_path}/private/users.yml", YAML.dump(users))
   end
 end
 
@@ -106,6 +148,34 @@ end
 # Home / index page
 get "/" do
   erb :index
+end
+
+# Signup page
+get "/users/signup" do
+  if session[:user]
+    redirect "/"
+  else
+    erb :signup
+  end
+end
+
+post "/users/signup" do
+  redirect "/" if session[:user]
+  username = params[:username]
+  password = params[:password]
+  password_confirm = params[:password_confirm]
+
+  error_message = check_signup_entry(username, password, password_confirm)
+  
+  if error_message
+    session[:message] = error_message
+    erb :signup
+  else
+    add_user(username, password)
+    session[:user] = username
+    session[:message] = "You are now registered, welcome!"
+    redirect '/'
+  end
 end
 
 # Login page
@@ -202,7 +272,7 @@ post "/:filename/edit" do
   redirect '/'
 end
 
-# Delete pages
+# Delete file
 post "/:filename/delete" do
   require_user_login()
 
@@ -211,6 +281,18 @@ post "/:filename/delete" do
 
   session[:message] = "#{params[:filename]} has been deleted."
 
+  redirect '/'
+end
+
+# Duplicate a file
+post "/:filename/duplicate" do
+  require_user_login()
+
+  filename = append_filename(params[:filename])
+  content = File.read(file_path(params[:filename]))
+
+  File.write(file_path(filename), content)
+  session[:message] = "#{filename} created."
   redirect '/'
 end
 
@@ -229,3 +311,5 @@ get "/:filename" do
     redirect "/"
   end
 end
+
+# User list

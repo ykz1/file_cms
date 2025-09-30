@@ -5,7 +5,7 @@
     <head>
       <tr>
         <th scope="col">File Name</th>
-        <th scope="col" colspan="2">Actions</th>
+        <th scope="col" colspan="3">Actions</th>
       </tr>
     </head>
     <tbody>
@@ -14,6 +14,7 @@
           <td><a href="<%= file %>"><%= file %></a></td>
           <td><form action="/<%= file %>/edit" method="get"><button type="submit">Edit</button></form></td>
           <td><form action="/<%= file %>/delete" method="post"><button type="submit">Delete</button></form></td>
+          <td><form action="/<%= file %>/duplicate" method="post"><button type="submit">Duplicate</button></form></td>
         </tr>
       <% end %>
     </tbody>
@@ -21,6 +22,6 @@
   <br>
   <form action="/new" method="get"><button type="submit">New File</button></form>
 <% else %>
-  <p><a href="/users/login">Sign in</a> to access this page</p>
+  <p><a href="/users/login">Sign in</a> or <a href="users/signup">Register</a> to access this page</p>
 <% end %>
 

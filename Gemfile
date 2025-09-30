@@ -1,4 +1,5 @@
 source "https://rubygems.org"
+ruby "3.4.5"
 
 gem "sinatra"
 gem "sinatra-contrib"
@@ -11,4 +12,4 @@ gem "rack-test"
 
 gem "redcarpet"
 
-ruby "3.4.5"
+gem "bcrypt"
